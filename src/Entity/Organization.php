@@ -122,14 +122,19 @@ class Organization
     private Collection $stockMovements;
 
     /**
-     *
+     * @var Collection<int, Bottle>
      */
+    #[ORM\OneToMany(targetEntity: Bottle::class, mappedBy: 'organization')]
+    private Collection $bottles;
+
+
     public function __construct()
     {
         $this->uuid = Uuid::v7();
         $this->users = new ArrayCollection();
         $this->categories = new ArrayCollection();
         $this->stockMovements = new ArrayCollection();
+        $this->bottles = new ArrayCollection();
     }
 
     /**
@@ -317,6 +322,36 @@ class Organization
             // set the owning side to null (unless already changed)
             if ($stockMovement->getOrganization() === $this) {
                 $stockMovement->setOrganization(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Bottle>
+     */
+    public function getBottles(): Collection
+    {
+        return $this->bottles;
+    }
+
+    public function addBottle(Bottle $bottle): static
+    {
+        if (!$this->bottles->contains($bottle)) {
+            $this->bottles->add($bottle);
+            $bottle->setOrganization($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBottle(Bottle $bottle): static
+    {
+        if ($this->bottles->removeElement($bottle)) {
+            // set the owning side to null (unless already changed)
+            if ($bottle->getOrganization() === $this) {
+                $bottle->setOrganization(null);
             }
         }
 

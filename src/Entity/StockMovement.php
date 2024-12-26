@@ -41,7 +41,6 @@ use Symfony\Component\Uid\Uuid;
     denormalizationContext: ['groups' => ['stockMovement:write']]
 )]
 #[ORM\Entity(repositoryClass: StockMovementRepository::class)]
-#[ApiResource]
 class StockMovement
 {
     use TimestampableTrait;
@@ -59,6 +58,7 @@ class StockMovement
      */
     #[ORM\Column(type: 'uuid', unique: true)]
     #[Groups(['stockMovement:read'])]
+    #[ApiProperty(identifier: true)]
     private ?Uuid $uuid = null;
 
     /**
