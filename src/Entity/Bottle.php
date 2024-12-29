@@ -43,6 +43,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         )
     ],
 )]
+#[ORM\HasLifecycleCallbacks]
 class Bottle
 {
     use TimestampableTrait;
@@ -162,6 +163,22 @@ class Bottle
     #[ORM\ManyToOne(inversedBy: 'bottles')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Organization $organization = null;
+
+    /**
+     * @return Organization|null
+     */
+    public function getOrganization(): ?Organization
+    {
+        return $this->organization;
+    }
+
+    /**
+     * @param Organization|null $organization
+     */
+    public function setOrganization(?Organization $organization): void
+    {
+        $this->organization = $organization;
+    }
 
 
     public function __construct()

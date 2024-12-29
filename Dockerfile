@@ -1,34 +1,31 @@
 FROM php:8.2-fpm
 
-# Installation des dépendances système
+# Installation des dépendances système en une seule couche
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
     libzip-dev \
     libicu-dev \
     wget \
-    && docker-php-ext-install \
+    && docker-php-ext-install -j$(nproc) \
     pdo_mysql \
     zip \
-    intl
+    intl \
+    opcache \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Installation de Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Installation du Symfony CLI
-RUN curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.deb.sh' | bash
-RUN apt-get install -y symfony-cli
-
-# Configuration PHP
-COPY php.ini /usr/local/etc/php/conf.d/app.ini
+# Installation de Composer avec une version spécifique
+COPY --from=composer:2.6 /usr/bin/composer /usr/local/bin/composer
 
 WORKDIR /var/www/html
 
-# Configuration du PHP-FPM
-RUN echo "php_admin_flag[log_errors] = on" >> /usr/local/etc/php-fpm.d/www.conf && \
-    echo "php_admin_value[error_log] = /var/log/fpm-php.www.log" >> /usr/local/etc/php-fpm.d/www.conf
+# Configuration optimisée de PHP-FPM
+RUN echo "pm = dynamic" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.max_children = 50" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.start_servers = 5" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.min_spare_servers = 5" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.max_spare_servers = 35" >> /usr/local/etc/php-fpm.d/www.conf
 
-# Exposer le port FPM
 EXPOSE 9000
-
 CMD ["php-fpm"]
